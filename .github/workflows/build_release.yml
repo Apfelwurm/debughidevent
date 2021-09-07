@@ -1,0 +1,69 @@
+name: debughidevent_build_release
+
+on:
+  push:
+    branches: 
+    - main
+    tags: [ v**]
+    paths:
+    - '**'
+    - '!Docs/**'
+    - '!README.md'
+  pull_request:
+    branches: 
+    - main
+    tags: [ v**]
+    paths:
+    - '**'
+    - '!Docs/**'
+    - '!README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: set Version
+      if: ${{ (startsWith(github.ref, 'refs/tags/v')) }}
+      run:  echo "debughideventDVER=$(echo ${GITHUB_REF} | sed 's|refs/heads/||g' | sed 's|refs/tags/v||g' | sed 's|-beta||g' )" >> $GITHUB_ENV  
+    - name: set Version
+      if: ${{ !(startsWith(github.ref, 'refs/tags/v')) }}
+      run:  echo "debughideventDVER=1.0.0-1" >> $GITHUB_ENV  
+    - name: set majorVersion
+      run:  echo "debughideventDMAJORVER=$(echo $debughideventDVER | sed 's|-.*$||g' | cut -d. -f1 )" >> $GITHUB_ENV  
+    - name: set minorVersion
+      run:  echo "debughideventDMINORVER=$(echo $debughideventDVER | sed 's|-.*$||g' | cut -d. -f2 )" >> $GITHUB_ENV  
+    - name: set patchVersion
+      run:  echo "debughideventDPATCHVER=$(echo $debughideventDVER | sed 's|-.*$||g' | cut -d. -f3 )" >> $GITHUB_ENV  
+    - name: set version control
+      run: 'sed -i "s|Version: .*$|Version: $debughideventDVER|g" DEBIAN/control'
+
+    - name: set majorVersion cmake
+      run: 'sed -i "s|^set.*VERSION_MAJOR.*$|set (\${PROJECT_NAME}_VERSION_MAJOR $debughideventDMAJORVER)|g" CMakeLists.txt'
+    - name: set minorVersion cmake
+      run: 'sed -i "s|^set.*VERSION_MINOR.*$|set (\${PROJECT_NAME}_VERSION_MINOR $debughideventDMINORVER)|g" CMakeLists.txt'
+    - name: set patchVersion cmake
+      run: 'sed -i "s|^set.*PATCH_LEVEL.*$|set (\${PROJECT_NAME}_PATCH_LEVEL $debughideventDPATCHVER)|g" CMakeLists.txt'
+
+    - name: run build
+      run: './rebuild.sh'    
+    - name: move build
+      run: 'mv build/debughidevent_1.0.0_amd64.deb $(echo "build/debughidevent_"$debughideventDVER"_amd64.deb")'
+    - name: make release
+      if: ${{ (startsWith(github.ref, 'refs/tags/v')) && (!(contains(github.ref, '-beta'))) }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ./build/debughidevent_*.deb
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
+    - name: make release
+      if: ${{ (startsWith(github.ref, 'refs/tags/v')) && ((contains(github.ref, '-beta'))) }}
+      uses: softprops/action-gh-release@v1
+      with:
+        prerelease: true
+        files: |
+          ./build/debughidevent_*.deb
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
