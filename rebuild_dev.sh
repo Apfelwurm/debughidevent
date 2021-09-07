@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# test ci
 rm -rf build
 mkdir build
 cd build
