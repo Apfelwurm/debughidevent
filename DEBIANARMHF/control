@@ -1,0 +1,5 @@
+Package: debughidevent
+Version: 1.0.0-1
+Architecture: armhf
+Maintainer: Alexander Volz
+Description: small software to make linux hid events human readable
