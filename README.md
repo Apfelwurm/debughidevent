@@ -3,10 +3,10 @@ small software to make linux hid events human readable
 
 ## installing on ubuntu/debian
 
-* download the [latest release](https://github.com/Apfelwurm/debughidevent/releases)
+* download the [latest release](https://github.com/Apfelwurm/debughidevent/releases) (most likely x64, for Raspberry use armhf)
 * open your cli in the download folder and run:
 ```
-sudo dpkg -i debughidevent_*_amd64.deb
+sudo dpkg -i debughidevent_*.deb
 ```
 
 ## uninstalling on ubuntu/debian
